@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Leviatã Clinical</title>
+    <title>Leviatã Clinical v15.4</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { background-color: #0f172a; color: white; }
@@ -25,47 +25,36 @@
 <main class="w-full max-w-md glass p-6 rounded-2xl shadow-2xl border border-slate-700">
 
     <div class="space-y-4 mb-6">
-
         <div>
-            <label class="block text-[10px] uppercase tracking-widest mb-1 text-cyan-300 font-bold opacity-70">
-                Projeto
-            </label>
+            <label class="block text-[10px] uppercase tracking-widest mb-1 text-cyan-300 font-bold opacity-70">Projeto</label>
             <input id="projeto" type="text" value="PROJETO_ALPHA"
                 class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white font-mono text-sm">
         </div>
 
         <div>
-            <label class="block text-[10px] uppercase tracking-widest mb-1 text-cyan-300 font-bold opacity-70">
-                Rota
-            </label>
-            <select id="rota"
-                class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white text-sm">
-                <option value="systemic">Systemic</option>
-                <option value="cns">CNS</option>
-                <option value="intracellular">Intracellular</option>
+            <label class="block text-[10px] uppercase tracking-widest mb-1 text-cyan-300 font-bold opacity-70">Rota de Entrega</label>
+            <select id="rota" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white text-sm">
+                <option value="systemic">Systemic (Sistêmica)</option>
+                <option value="cns">CNS (Barreira Hematoencefálica)</option>
+                <option value="oral">Oral (Resistência Gástrica)</option>
             </select>
         </div>
 
         <div>
-            <label class="block text-[10px] uppercase tracking-widest mb-1 text-cyan-300 font-bold opacity-70">
-                Sequência alvo
-            </label>
-            <textarea id="sequencia"
+            <label class="block text-[10px] uppercase tracking-widest mb-1 text-cyan-300 font-bold opacity-70">Sequência Alvo (Ground Truth)</label>
+            <textarea id="sequencia" placeholder="EX: VRSSSRTPSDKPVAHVVAN"
                 class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white font-mono text-sm h-24 uppercase resize-none"></textarea>
         </div>
-
     </div>
 
     <button onclick="analisar()" id="btn"
-        class="w-full bg-cyan-600 hover:bg-cyan-500 py-4 rounded-xl font-black uppercase tracking-widest text-sm">
+        class="w-full bg-cyan-600 hover:bg-cyan-500 py-4 rounded-xl font-black uppercase tracking-widest text-sm transition-all active:scale-95">
         Iniciar Motor Genético
     </button>
 
     <div id="loading" class="hidden mt-6 text-center">
-        <div class="inline-block animate-spin rounded-full h-4 w-4 border-t-2 border-cyan-400"></div>
-        <span class="text-cyan-400 text-[10px] uppercase font-bold">
-            Evoluindo o Leviatã...
-        </span>
+        <div class="inline-block animate-spin rounded-full h-4 w-4 border-t-2 border-cyan-400 mr-2"></div>
+        <span class="text-cyan-400 text-[10px] uppercase font-bold">Evoluindo Sequências...</span>
     </div>
 
     <div id="resultados" class="mt-8 space-y-6"></div>
@@ -73,20 +62,19 @@
 </main>
 
 <script>
-function getEnergyColor(e) {
-    if (e < 5) return "text-emerald-400";
-    if (e < 10) return "text-yellow-400";
+// Função para definir a cor baseada na Entropia (Quanto maior, mais verde)
+function getEntropyColor(h) {
+    const val = parseFloat(h);
+    if (val > 3.7) return "text-emerald-400";
+    if (val > 3.0) return "text-yellow-400";
     return "text-red-400";
 }
 
 async function analisar() {
-
     const btn = document.getElementById('btn');
     const resDiv = document.getElementById('resultados');
     const loading = document.getElementById('loading');
-
     const seq = document.getElementById('sequencia').value.trim();
-    const rota = document.getElementById('rota').value;
 
     if (!seq) {
         alert("Insira a sequência alvo!");
@@ -104,83 +92,75 @@ async function analisar() {
             body: JSON.stringify({
                 projeto: document.getElementById('projeto').value,
                 sequencia_custom: seq.toUpperCase(),
-                rota: rota
+                rota: document.getElementById('rota').value
             })
         });
 
         const data = await response.json();
 
-        // === RELATÓRIO DE ECONOMIA ===
-        const eco = data.relatorio_economia;
-        const ecoHTML = `
+        // === RELATÓRIO DE ECONOMIA (BI) ===
+        const eco = data.analise_economica;
+        resDiv.innerHTML = `
             <div class="glass p-5 rounded-2xl border border-emerald-500/30 animate-fadeIn">
                 <div class="flex items-center gap-2 mb-4">
-                    <span class="text-emerald-400 text-xl">💰</span>
-                    <h2 class="text-lg font-bold text-emerald-400">ECONOMIA GERADA</h2>
+                    <span class="text-emerald-400">💰</span>
+                    <h2 class="text-sm font-bold text-emerald-400 uppercase tracking-tighter">Economia Gerada</h2>
                 </div>
                 <div class="grid grid-cols-2 gap-4 text-sm">
                     <div>
-                        <p class="text-[10px] text-slate-400">CUSTO EM SÍNTESE EVITADO</p>
-                        <p class="text-2xl font-bold text-emerald-400">
-                            R$ ${eco.resumo_economia.custo_sintese_evitado_min.toLocaleString('pt-BR')} – 
-                            R$ ${eco.resumo_economia.custo_sintese_evitado_max.toLocaleString('pt-BR')}
-                        </p>
+                        <p class="text-[9px] text-slate-400 uppercase font-bold">SÍNTESE EVITADA</p>
+                        <p class="text-lg font-bold text-emerald-400">${eco.roi_estimado.custo_evitado_bruto}</p>
                     </div>
                     <div>
-                        <p class="text-[10px] text-slate-400">TEMPO EVITADO</p>
-                        <p class="text-2xl font-bold text-cyan-400">
-                            ${eco.resumo_economia.tempo_evitado_semanas} semanas
-                        </p>
-                        <p class="text-xs text-emerald-400">${eco.resumo_economia.reducao_percent}% de redução</p>
+                        <p class="text-[9px] text-slate-400 uppercase font-bold">TEMPO POUPADO</p>
+                        <p class="text-lg font-bold text-cyan-400">${eco.roi_estimado.reducao_tempo_p&d}</p>
                     </div>
                 </div>
-                <div class="mt-4 text-[10px] text-slate-400 border-t border-slate-700 pt-3">
-                    ${eco.recomendacao}
-                </div>
+                <p class="mt-3 text-[10px] text-slate-500 italic border-t border-slate-800 pt-2">
+                    Audit ID: ${eco.id_auditoria} | Eficiência: ${eco.roi_estimado.eficiencia_algoritmica}
+                </p>
             </div>
         `;
 
-        resDiv.innerHTML += ecoHTML;
-
-        // === CANDIDATOS ===
-        data.resultados.forEach(res => {
-            const energia = res.energia ?? 0;
-
+        // === LISTAGEM DOS CANDIDATOS (RANKING) ===
+        data.ranking.forEach(res => {
+            const h_val = parseFloat(res.entropia_shannon);
             const card = document.createElement('div');
             card.className = 'glass p-5 rounded-2xl border-l-4 border-cyan-400 animate-fadeIn';
+            
             card.innerHTML = `
                 <div class="flex justify-between items-start mb-3">
                     <span class="text-[10px] bg-cyan-500/20 text-cyan-400 px-3 py-1 rounded-full font-black">
                         Rank #${res.rank}
                     </span>
-                    <span class="text-[10px] text-slate-500 font-mono">Energy-aware</span>
+                    <span class="text-[10px] text-slate-500 font-mono">Shannon-Entropy-Model</span>
                 </div>
 
-                <div class="font-mono text-base text-emerald-300 font-bold break-all leading-tight mb-4">
-                    ${res.sequencia_candidata}
+                <div class="font-mono text-base text-emerald-300 font-bold break-all leading-tight mb-4 tracking-widest">
+                    ${res.sequencia}
                 </div>
 
                 <div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden mb-4">
-                    <div style="width: ${Math.min(energia * 6, 100)}%" 
-                         class="h-full bg-gradient-to-r from-emerald-400 to-cyan-400 transition-all"></div>
+                    <div style="width: ${Math.min(h_val * 22, 100)}%" 
+                         class="h-full bg-gradient-to-r from-emerald-500 to-cyan-400 transition-all duration-1000"></div>
                 </div>
 
-                <div class="grid grid-cols-4 gap-2 text-center text-xs font-mono">
+                <div class="grid grid-cols-4 gap-1 text-center text-[10px] font-mono">
                     <div>
-                        <div class="text-slate-400">Energia</div>
-                        <div class="\( {getEnergyColor(energia)} font-bold"> \){energia}</div>
+                        <div class="text-slate-500">Entropia</div>
+                        <div class="${getEntropyColor(h_val)} font-bold text-xs">${res.entropia_shannon.split(' ')[0]}</div>
                     </div>
                     <div>
-                        <div class="text-slate-400">LogP</div>
-                        <div class="text-white">${res.logp_predito}</div>
+                        <div class="text-slate-500">LogP</div>
+                        <div class="text-white font-bold text-xs">${res.logp_predito}</div>
                     </div>
                     <div>
-                        <div class="text-slate-400">Meia-vida</div>
-                        <div class="text-cyan-400">${res.meia_vida}</div>
+                        <div class="text-slate-500">Meia-vida</div>
+                        <div class="text-cyan-400 font-bold text-xs">${res.meia_vida_estimada}</div>
                     </div>
                     <div>
-                        <div class="text-slate-400">Tox</div>
-                        <div class="text-red-400">${res.tox_hemolise}</div>
+                        <div class="text-slate-500">Tox</div>
+                        <div class="text-emerald-400 font-bold text-xs">${res.toxicidade_tox0}</div>
                     </div>
                 </div>
             `;
@@ -188,11 +168,12 @@ async function analisar() {
         });
 
     } catch (e) {
-        resDiv.innerHTML = `<p class="text-red-400 text-center">Erro ao conectar com o Motor Genético.</p>`;
+        console.error(e);
+        resDiv.innerHTML = `<div class="p-4 text-red-400 text-center glass rounded-xl">Falha na conexão com o Motor Leviatã. Verifique o servidor.</div>`;
+    } finally {
+        btn.disabled = false;
+        loading.classList.add('hidden');
     }
-
-    btn.disabled = false;
-    loading.classList.add('hidden');
 }
 </script>
 
