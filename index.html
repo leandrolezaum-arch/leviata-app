@@ -11,24 +11,31 @@
     </style>
 </head>
 <body class="p-4 flex flex-col items-center min-h-screen">
-    <header class="text-center my-8">
+    <header class="text-center my-6">
         <h1 class="text-3xl font-bold text-cyan-400 uppercase tracking-tighter">LEVIATÃ</h1>
-        <p class="text-slate-400 text-xs tracking-widest uppercase">Clinical Pipeline v1.0</p>
+        <p class="text-slate-400 text-[10px] tracking-[0.3em] uppercase">Input de Sequenciamento</p>
     </header>
 
     <main class="w-full max-w-md glass p-6 rounded-2xl shadow-2xl">
-        <div class="mb-6">
-            <label class="block text-[10px] uppercase tracking-widest mb-2 text-cyan-300 font-bold">Identificação do Projeto</label>
-            <input id="projeto" type="text" value="ALPHA-GEN-01" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 focus:outline-none focus:border-cyan-500 text-white font-mono">
+        <div class="space-y-4 mb-6">
+            <div>
+                <label class="block text-[10px] uppercase tracking-widest mb-2 text-cyan-300 font-bold">Identificação do Lote</label>
+                <input id="projeto" type="text" value="LOTE-BETA-02" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 focus:outline-none focus:border-cyan-500 text-white font-mono text-sm">
+            </div>
+
+            <div>
+                <label class="block text-[10px] uppercase tracking-widest mb-2 text-cyan-300 font-bold">Sequência de Aminoácidos (Input)</label>
+                <textarea id="sequencia" placeholder="Ex: SMNFCQ..." class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 focus:outline-none focus:border-cyan-500 text-white font-mono text-sm h-24 uppercase"></textarea>
+            </div>
         </div>
 
         <button onclick="analisar()" id="btn" class="w-full bg-cyan-600 hover:bg-cyan-500 transition-all font-black py-4 rounded-xl shadow-lg uppercase tracking-widest text-sm">
-            Executar Sequenciamento
+            Processar Sequência
         </button>
 
         <div id="loading" class="hidden mt-6 text-center">
             <div class="inline-block animate-spin rounded-full h-4 w-4 border-t-2 border-cyan-400 mr-2"></div>
-            <span class="text-cyan-400 animate-pulse text-xs uppercase font-bold">Acessando Núcleo Leviatã...</span>
+            <span class="text-cyan-400 animate-pulse text-xs uppercase font-bold">Calculando Ontologia...</span>
         </div>
         
         <div id="resultados" class="mt-8 space-y-3"></div>
@@ -39,21 +46,24 @@
             const btn = document.getElementById('btn');
             const resDiv = document.getElementById('resultados');
             const loading = document.getElementById('loading');
+            const seqInput = document.getElementById('sequencia').value;
             
+            if(!seqInput) { alert("Insira uma sequência para análise!"); return; }
+
             btn.disabled = true;
             btn.style.opacity = '0.5';
             loading.classList.remove('hidden');
             resDiv.innerHTML = '';
 
             try {
-                // LINK DA SUA API JÁ CONFIGURADO ABAIXO:
                 const response = await fetch('https://leviata-api.vercel.app/api/v1/descobrir', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ 
                         projeto: document.getElementById('projeto').value,
-                        rota: "systemic",
-                        tamanho: 6
+                        // Enviando a sequência que VOCÊ digitou:
+                        sequencia_custom: seqInput.toUpperCase(),
+                        rota: "systemic"
                     })
                 });
 
@@ -61,21 +71,21 @@
                 
                 data.resultados.forEach(res => {
                     const card = document.createElement('div');
-                    card.className = 'glass p-4 rounded-xl border-l-4 border-cyan-500 flex justify-between items-center animate-fadeIn';
+                    card.className = 'glass p-4 rounded-xl border-l-4 border-emerald-500 flex justify-between items-center';
                     card.innerHTML = `
                         <div>
-                            <div class="font-mono text-lg text-cyan-300 font-bold tracking-widest">${res.sequencia_candidata}</div>
-                            <div class="text-[9px] text-slate-500 uppercase font-bold mt-1">Candidato Rank #${res.rank}</div>
+                            <div class="font-mono text-lg text-emerald-400 font-bold tracking-widest">${res.sequencia_candidata}</div>
+                            <div class="text-[9px] text-slate-500 uppercase font-bold mt-1 tracking-tighter italic">Análise de Estabilidade Concluída</div>
                         </div>
-                        <div class="text-right">
-                            <div class="text-xs font-bold text-slate-300">LogP: ${res.logp_predito}</div>
-                            <div class="text-[10px] text-red-400 font-bold mt-1">Tox: ${res.tox_hemolise}</div>
+                        <div class="text-right font-mono">
+                            <div class="text-xs font-bold text-slate-300 italic">L-P: ${res.logp_predito}</div>
+                            <div class="text-[10px] text-red-400 font-bold mt-1">TX: ${res.tox_hemolise}</div>
                         </div>
                     `;
                     resDiv.appendChild(card);
                 });
             } catch (e) {
-                alert('Erro de Conexão: O motor Leviatã não respondeu.');
+                alert('Erro: O motor não aceitou esta sequência.');
             } finally {
                 btn.disabled = false;
                 btn.style.opacity = '1';
@@ -83,11 +93,5 @@
             }
         }
     </script>
-
-    <footer class="mt-auto py-6">
-        <div class="text-[10px] text-slate-600 font-bold uppercase tracking-widest">
-            Protocolo de Criptografia Ativo
-        </div>
-    </footer>
 </body>
 </html>
