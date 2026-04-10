@@ -2,76 +2,94 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://cdn.tailwindcss.com"></script>
-    <title>LEVIATÃ Clinical</title>
-    <style>body { background: #0f172a; color: white; }</style>
+    <title>LEVIATÃ Pipeline</title>
 </head>
-<body class="p-6 flex flex-col items-center">
-    <h1 class="text-4xl font-bold text-cyan-400 italic mb-2">LEVIATÃ</h1>
-    <p class="text-slate-500 text-xs tracking-widest mb-8">UNIVERSAL CLINICAL PIPELINE</p>
+<body class="bg-slate-950 text-white p-4 font-sans">
+    <div class="max-w-md mx-auto">
+        <header class="text-center py-6">
+            <h1 class="text-4xl font-black text-cyan-400 italic">LEVIATÃ</h1>
+            <p class="text-slate-500 text-[10px] uppercase tracking-[0.4em]">Universal Clinical Pipeline</p>
+        </header>
 
-    <div class="w-full max-w-md bg-slate-800 p-6 rounded-3xl shadow-xl space-y-4">
-        <input id="projeto" type="text" value="PROJETO_ALPHA" class="w-full bg-slate-900 p-3 rounded-xl border border-slate-700">
-        <select id="rota" class="w-full bg-slate-900 p-3 rounded-xl border border-slate-700">
-            <option value="systemic">Systemic</option>
-            <option value="cns">CNS</option>
-        </select>
-        <textarea id="alvo" placeholder="SEQUÊNCIA ALVO" class="w-full bg-slate-900 p-3 rounded-xl h-24 uppercase"></textarea>
-        <button onclick="rodar()" id="btn" class="w-full bg-cyan-600 p-4 rounded-xl font-bold hover:bg-cyan-500">INICIAR MOTOR</button>
-        
-        <div id="loading" class="hidden text-center text-cyan-400 animate-pulse text-xs">EVOLUINDO...</div>
-        <div id="res" class="mt-6 space-y-4"></div>
+        <div class="bg-slate-900 border border-slate-800 p-6 rounded-3xl shadow-2xl space-y-4">
+            <input id="proj" type="text" value="PROJETO_ALPHA" class="w-full bg-black/50 p-3 rounded-xl border border-slate-700 text-sm">
+            
+            <select id="rota" class="w-full bg-black/50 p-3 rounded-xl border border-slate-700 text-sm">
+                <option value="systemic">Systemic</option>
+                <option value="cns">CNS</option>
+            </select>
+
+            <textarea id="alvo" placeholder="COLE A SEQUÊNCIA ALVO AQUI" class="w-full bg-black/50 p-3 rounded-xl border border-slate-700 h-24 font-mono text-xs uppercase"></textarea>
+            
+            <button onclick="executar()" id="btn" class="w-full bg-cyan-600 hover:bg-cyan-500 p-4 rounded-2xl font-bold uppercase tracking-widest transition-all">
+                Iniciar Motor Genético
+            </button>
+
+            <div id="loading" class="hidden text-center text-cyan-400 animate-pulse text-xs font-bold">EVOLUINDO MOLECULA...</div>
+            <div id="display" class="space-y-4"></div>
+        </div>
     </div>
 
     <script>
-        async function rodar() {
-            const resDiv = document.getElementById('res');
+        async function executar() {
+            const display = document.getElementById('display');
             const btn = document.getElementById('btn');
-            resDiv.innerHTML = '';
-            document.getElementById('loading').classList.remove('hidden');
+            const loading = document.getElementById('loading');
+            
+            display.innerHTML = '';
+            loading.classList.remove('hidden');
+            btn.disabled = true;
 
             try {
-                const response = await fetch('http://localhost:8000/api/v1/descobrir', {
+                // SUBSTITUA A URL ABAIXO PELA URL DO SEU CODESPACE (PORTA 8000)
+                const URL_API = 'COLE_AQUI_A_URL_DO_GITHUB/api/v1/descobrir';
+                
+                const res = await fetch(URL_API, {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({
-                        projeto: document.getElementById('projeto').value,
+                        projeto: document.getElementById('proj').value,
                         sequencia_custom: document.getElementById('alvo').value,
                         rota: document.getElementById('rota').value
                     })
                 });
-                const data = await response.json();
+
+                const data = await res.json();
 
                 // Card de Economia
-                resDiv.innerHTML = `
-                    <div class="bg-emerald-900/30 border border-emerald-500/50 p-4 rounded-2xl">
-                        <p class="text-[10px] text-emerald-400 font-bold">ECONOMIA ESTIMADA</p>
-                        <p class="text-2xl font-bold text-emerald-400">${data.economia.valor}</p>
-                        <p class="text-xs text-cyan-400">${data.economia.tempo} evitadas</p>
+                display.innerHTML = `
+                    <div class="bg-emerald-500/10 border border-emerald-500/50 p-4 rounded-2xl mt-4">
+                        <p class="text-[10px] text-emerald-500 font-bold uppercase">Economia Gerada</p>
+                        <p class="text-2xl font-black text-emerald-400">${data.economia.poupado}</p>
+                        <p class="text-xs text-cyan-500">${data.economia.tempo} evitadas de P&D</p>
                     </div>
                 `;
 
-                // Cards de Ranking
+                // Ranking
                 data.ranking.forEach(item => {
-                    resDiv.innerHTML += `
-                        <div class="bg-slate-900 p-4 rounded-2xl border-l-4 border-cyan-500">
-                            <div class="flex justify-between text-[10px] mb-2">
-                                <span class="font-bold text-cyan-400">RANK #${item.rank}</span>
-                                <span class="text-slate-500">SHANNON-MODEL</span>
+                    display.innerHTML += `
+                        <div class="bg-black/40 p-4 rounded-2xl border-l-4 border-cyan-500 animate-fadeIn">
+                            <div class="flex justify-between text-[10px] mb-2 font-bold uppercase text-slate-500">
+                                <span>Rank #${item.rank}</span>
+                                <span>Shannon-Model</span>
                             </div>
-                            <div class="font-mono text-emerald-300 font-bold mb-3 break-all">${item.sequencia}</div>
-                            <div class="grid grid-cols-3 gap-2 text-[10px] text-center">
-                                <div><p class="text-slate-500">ENTROPIA</p><p class="font-bold">${item.entropia}</p></div>
-                                <div><p class="text-slate-500">LOGP</p><p class="font-bold">${item.logp}</p></div>
-                                <div><p class="text-slate-500">VIDA</p><p class="font-bold text-cyan-400">${item.vida}</p></div>
+                            <p class="font-mono text-sm text-emerald-400 font-bold break-all mb-3">${item.sequencia}</p>
+                            <div class="grid grid-cols-3 gap-2 text-[9px] text-center font-bold">
+                                <div><p class="text-slate-600">ENTROPIA</p><p class="text-white">${item.entropia}</p></div>
+                                <div><p class="text-slate-600">LOGP</p><p class="text-white">${item.logp}</p></div>
+                                <div><p class="text-slate-600">VIDA</p><p class="text-cyan-400">${item.vida}</p></div>
                             </div>
                         </div>
                     `;
                 });
-            } catch (e) {
-                resDiv.innerHTML = '<p class="text-red-400">Erro de conexão.</p>';
+            } catch (err) {
+                display.innerHTML = '<div class="text-red-500 text-center text-xs p-4">Erro: Verifique se o Motor está em Public na aba Ports.</div>';
+            } finally {
+                loading.classList.add('hidden');
+                btn.disabled = false;
             }
-            document.getElementById('loading').classList.add('hidden');
         }
     </script>
 </body>
