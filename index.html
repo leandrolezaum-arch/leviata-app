@@ -12,7 +12,7 @@
         .animate-fadeIn { animation: fadeIn 0.4s ease-out forwards; }
     </style>
 </head>
-<body class="p-4 flex flex-col items-center min-h-screen">
+<body class="p-4 flex flex-col items-center min-h-screen font-sans">
     <header class="text-center my-6">
         <h1 class="text-3xl font-bold text-cyan-400 uppercase tracking-tighter italic">LEVIATÃ</h1>
         <p class="text-slate-400 text-[10px] tracking-[0.3em] uppercase font-bold">Universal Clinical Pipeline</p>
@@ -23,6 +23,15 @@
             <div>
                 <label class="block text-[10px] uppercase tracking-widest mb-1 text-cyan-300 font-bold opacity-70">Identificação do Projeto</label>
                 <input id="projeto" type="text" value="PROJETO_ALPHA" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 focus:outline-none focus:border-cyan-500 text-white font-mono text-sm">
+            </div>
+
+            <div>
+                <label class="block text-[10px] uppercase tracking-widest mb-1 text-cyan-300 font-bold opacity-70">Rota Farmacocinética</label>
+                <select id="rota" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 focus:outline-none focus:border-cyan-500 text-white text-sm appearance-none">
+                    <option value="systemic">Systemic (Sangue/Geral)</option>
+                    <option value="cns">CNS (Barreira Hematoencefálica)</option>
+                    <option value="intracellular">Intracellular (Alvos Internos)</option>
+                </select>
             </div>
 
             <div>
@@ -49,6 +58,7 @@
             const resDiv = document.getElementById('resultados');
             const loading = document.getElementById('loading');
             const seqInput = document.getElementById('sequencia').value;
+            const rotaInput = document.getElementById('rota').value;
             
             if(!seqInput) { alert("Insira o alvo biológico!"); return; }
 
@@ -64,7 +74,7 @@
                     body: JSON.stringify({ 
                         projeto: document.getElementById('projeto').value,
                         sequencia_custom: seqInput.toUpperCase(),
-                        rota: "systemic" // Pode mudar para cns ou intracellular depois
+                        rota: rotaInput 
                     })
                 });
 
