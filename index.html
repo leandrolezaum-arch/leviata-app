@@ -12,112 +12,178 @@
         .animate-fadeIn { animation: fadeIn 0.4s ease-out forwards; }
     </style>
 </head>
+
 <body class="p-4 flex flex-col items-center min-h-screen font-sans">
-    <header class="text-center my-6">
-        <h1 class="text-3xl font-bold text-cyan-400 uppercase tracking-tighter italic">LEVIATÃ</h1>
-        <p class="text-slate-400 text-[10px] tracking-[0.3em] uppercase font-bold">Universal Clinical Pipeline</p>
-    </header>
 
-    <main class="w-full max-w-md glass p-6 rounded-2xl shadow-2xl border border-slate-700">
-        <div class="space-y-4 mb-6">
-            <div>
-                <label class="block text-[10px] uppercase tracking-widest mb-1 text-cyan-300 font-bold opacity-70">Identificação do Projeto</label>
-                <input id="projeto" type="text" value="PROJETO_ALPHA" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 focus:outline-none focus:border-cyan-500 text-white font-mono text-sm">
-            </div>
+<header class="text-center my-6">
+    <h1 class="text-3xl font-bold text-cyan-400 uppercase tracking-tighter italic">LEVIATÃ</h1>
+    <p class="text-slate-400 text-[10px] tracking-[0.3em] uppercase font-bold">
+        Universal Clinical Pipeline
+    </p>
+</header>
 
-            <div>
-                <label class="block text-[10px] uppercase tracking-widest mb-1 text-cyan-300 font-bold opacity-70">Rota Farmacocinética</label>
-                <select id="rota" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 focus:outline-none focus:border-cyan-500 text-white text-sm appearance-none">
-                    <option value="systemic">Systemic (Sangue/Geral)</option>
-                    <option value="cns">CNS (Barreira Hematoencefálica)</option>
-                    <option value="intracellular">Intracellular (Alvos Internos)</option>
-                </select>
-            </div>
+<main class="w-full max-w-md glass p-6 rounded-2xl shadow-2xl border border-slate-700">
 
-            <div>
-                <label class="block text-[10px] uppercase tracking-widest mb-1 text-cyan-300 font-bold opacity-70">Sequência da Doença (Alvo)</label>
-                <textarea id="sequencia" placeholder="Insira a sequência do patógeno..." class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 focus:outline-none focus:border-cyan-500 text-white font-mono text-sm h-24 uppercase resize-none"></textarea>
-            </div>
+    <div class="space-y-4 mb-6">
+
+        <div>
+            <label class="block text-[10px] uppercase tracking-widest mb-1 text-cyan-300 font-bold opacity-70">
+                Projeto
+            </label>
+            <input id="projeto" type="text" value="PROJETO_ALPHA"
+                class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white font-mono text-sm">
         </div>
 
-        <button onclick="analisar()" id="btn" class="w-full bg-cyan-600 hover:bg-cyan-500 active:scale-95 transition-all font-black py-4 rounded-xl shadow-lg uppercase tracking-widest text-sm">
-            Iniciar Motor Genético
-        </button>
-
-        <div id="loading" class="hidden mt-6 text-center">
-            <div class="inline-block animate-spin rounded-full h-4 w-4 border-t-2 border-cyan-400 mr-2"></div>
-            <span class="text-cyan-400 animate-pulse text-[10px] uppercase font-bold italic">Evoluindo População de Peptídeos...</span>
+        <div>
+            <label class="block text-[10px] uppercase tracking-widest mb-1 text-cyan-300 font-bold opacity-70">
+                Rota
+            </label>
+            <select id="rota"
+                class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white text-sm">
+                <option value="systemic">Systemic</option>
+                <option value="cns">CNS</option>
+                <option value="intracellular">Intracellular</option>
+            </select>
         </div>
-        
-        <div id="resultados" class="mt-8 space-y-4"></div>
-    </main>
 
-    <script>
-        async function analisar() {
-            const btn = document.getElementById('btn');
-            const resDiv = document.getElementById('resultados');
-            const loading = document.getElementById('loading');
-            const seqInput = document.getElementById('sequencia').value;
-            const rotaInput = document.getElementById('rota').value;
-            
-            if(!seqInput) { alert("Insira o alvo biológico!"); return; }
+        <div>
+            <label class="block text-[10px] uppercase tracking-widest mb-1 text-cyan-300 font-bold opacity-70">
+                Sequência alvo
+            </label>
+            <textarea id="sequencia"
+                class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white font-mono text-sm h-24 uppercase resize-none"></textarea>
+        </div>
 
-            btn.disabled = true;
-            btn.style.opacity = '0.5';
-            loading.classList.remove('hidden');
-            resDiv.innerHTML = '';
+    </div>
 
-            try {
-                const response = await fetch('https://leviata-api.vercel.app/api/v1/descobrir', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        projeto: document.getElementById('projeto').value,
-                        sequencia_custom: seqInput.toUpperCase(),
-                        rota: rotaInput 
-                    })
-                });
+    <button onclick="analisar()" id="btn"
+        class="w-full bg-cyan-600 hover:bg-cyan-500 py-4 rounded-xl font-black uppercase tracking-widest text-sm">
+        Iniciar Motor Genético
+    </button>
 
-                const data = await response.json();
-                
-                data.resultados.forEach(res => {
-                    const card = document.createElement('div');
-                    card.className = 'glass p-4 rounded-xl border-l-4 border-emerald-500 animate-fadeIn';
-                    card.innerHTML = `
-                        <div class="flex flex-col gap-3">
-                            <div class="flex justify-between items-start">
-                                <span class="text-[9px] bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded font-black uppercase">Rank #${res.rank}</span>
-                                <span class="text-[9px] text-slate-500 font-mono italic">Fitness Optimized</span>
-                            </div>
-                            <div class="font-mono text-sm text-emerald-400 font-bold tracking-widest break-all leading-relaxed">
-                                ${res.sequencia_candidata}
-                            </div>
-                            <div class="flex justify-between items-end border-t border-slate-800 pt-3 text-right font-mono">
-                                <div>
-                                    <div class="text-[8px] text-slate-500 uppercase font-black text-left">LogP</div>
-                                    <div class="text-xs font-bold text-slate-200 text-left">${res.logp_predito}</div>
-                                </div>
-                                <div>
-                                    <div class="text-[8px] text-slate-500 uppercase font-black">Meia-Vida</div>
-                                    <div class="text-xs font-bold text-cyan-400">${res.meia_vida}h</div>
-                                </div>
-                                <div>
-                                    <div class="text-[8px] text-slate-500 uppercase font-black">Tox</div>
-                                    <div class="text-xs font-bold text-red-400">${res.tox_hemolise}</div>
-                                </div>
-                            </div>
+    <div id="loading" class="hidden mt-6 text-center">
+        <div class="inline-block animate-spin rounded-full h-4 w-4 border-t-2 border-cyan-400"></div>
+        <span class="text-cyan-400 text-[10px] uppercase font-bold">
+            Evoluindo...
+        </span>
+    </div>
+
+    <div id="resultados" class="mt-8 space-y-4"></div>
+
+</main>
+
+<script>
+function getEnergyColor(e) {
+    if (e < 5) return "text-emerald-400";
+    if (e < 10) return "text-yellow-400";
+    return "text-red-400";
+}
+
+function getEnergyBar(e) {
+    if (e < 5) return "bg-emerald-400";
+    if (e < 10) return "bg-yellow-400";
+    return "bg-red-500";
+}
+
+async function analisar() {
+
+    const btn = document.getElementById('btn');
+    const resDiv = document.getElementById('resultados');
+    const loading = document.getElementById('loading');
+
+    const seq = document.getElementById('sequencia').value;
+    const rota = document.getElementById('rota').value;
+
+    if (!seq) {
+        alert("Insira o alvo!");
+        return;
+    }
+
+    btn.disabled = true;
+    loading.classList.remove('hidden');
+    resDiv.innerHTML = '';
+
+    try {
+
+        const response = await fetch('https://leviata-api.vercel.app/api/v1/descobrir', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                projeto: document.getElementById('projeto').value,
+                sequencia_custom: seq.toUpperCase(),
+                rota: rota
+            })
+        });
+
+        const data = await response.json();
+
+        data.resultados.forEach(res => {
+
+            const energia = res.energia ?? 0;
+
+            const card = document.createElement('div');
+            card.className = 'glass p-4 rounded-xl border-l-4 border-emerald-500 animate-fadeIn';
+
+            card.innerHTML = `
+                <div class="flex flex-col gap-3">
+
+                    <div class="flex justify-between">
+                        <span class="text-[9px] bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded font-black">
+                            Rank #${res.rank}
+                        </span>
+                        <span class="text-[9px] text-slate-500 font-mono italic">
+                            Energy-aware
+                        </span>
+                    </div>
+
+                    <div class="font-mono text-sm text-emerald-400 font-bold break-all">
+                        ${res.seq || res.sequencia_candidata}
+                    </div>
+
+                    <!-- Barra de energia -->
+                    <div class="w-full h-1 bg-slate-800 rounded overflow-hidden">
+                        <div style="width:${Math.min(energia * 5, 100)}%"
+                             class="h-full ${getEnergyBar(energia)} transition-all"></div>
+                    </div>
+
+                    <div class="flex justify-between border-t border-slate-800 pt-3 text-xs font-mono">
+
+                        <div>
+                            <div class="text-[8px] text-slate-500 uppercase">Energia</div>
+                            <div class="font-bold ${getEnergyColor(energia)}">${energia}</div>
                         </div>
-                    `;
-                    resDiv.appendChild(card);
-                });
-            } catch (e) {
-                alert('Erro Crítico: Motor Genético Offline.');
-            } finally {
-                btn.disabled = false;
-                btn.style.opacity = '1';
-                loading.classList.add('hidden');
-            }
-        }
-    </script>
+
+                        <div>
+                            <div class="text-[8px] text-slate-500 uppercase">LogP</div>
+                            <div>${res.logP ?? res.logp_predito}</div>
+                        </div>
+
+                        <div>
+                            <div class="text-[8px] text-slate-500 uppercase">Meia-vida</div>
+                            <div class="text-cyan-400">${res.half_life ?? res.meia_vida}h</div>
+                        </div>
+
+                        <div>
+                            <div class="text-[8px] text-slate-500 uppercase">Tox</div>
+                            <div class="text-red-400">${res.tox ?? res.tox_hemolise}</div>
+                        </div>
+
+                    </div>
+
+                </div>
+            `;
+
+            resDiv.appendChild(card);
+        });
+
+    } catch (e) {
+        alert("Erro: API offline");
+    }
+
+    btn.disabled = false;
+    loading.classList.add('hidden');
+}
+</script>
+
 </body>
 </html>
